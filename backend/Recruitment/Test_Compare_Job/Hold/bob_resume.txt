@@ -1,0 +1,8 @@
+
+    Bob Smith  
+    Full Stack Developer
+    Email: bob.smith@email.com
+    Phone: +1-555-1002
+    Experience: 7 years
+    Skills: Python, React, Node.js
+    
