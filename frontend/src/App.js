@@ -1069,6 +1069,44 @@ const CandidatesPage = () => {
     }
   };
 
+  const toggleCompareSelection = (candidateId) => {
+    setSelectedForCompare((prev) => {
+      if (prev.includes(candidateId)) {
+        return prev.filter((id) => id !== candidateId);
+      }
+      if (prev.length >= 5) {
+        toast.error("Maximum 5 candidates can be compared");
+        return prev;
+      }
+      return [...prev, candidateId];
+    });
+  };
+
+  const handleCompare = async () => {
+    if (selectedForCompare.length < 2) {
+      toast.error("Select at least 2 candidates to compare");
+      return;
+    }
+
+    setComparing(true);
+    try {
+      const res = await axios.post(`${API}/compare-candidates`, {
+        candidate_ids: selectedForCompare,
+      });
+      setCompareResult(res.data);
+      setShowCompareDialog(true);
+    } catch (error) {
+      toast.error("Failed to compare candidates");
+    } finally {
+      setComparing(false);
+    }
+  };
+
+  const clearCompareSelection = () => {
+    setSelectedForCompare([]);
+    setCompareResult(null);
+  };
+
   const filteredCandidates = candidates.filter((c) =>
     c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
