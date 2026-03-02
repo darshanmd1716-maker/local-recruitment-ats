@@ -17,6 +17,7 @@ Build a Local Recruitment Automation Agent for IT recruiters that works offline 
 7. No cloud uploads, no email/WhatsApp, preserve data integrity
 
 ## What's Been Implemented (Jan 2026)
+### Phase 1 - MVP
 - ✅ Dashboard with stats cards (Jobs, Candidates, Shortlisted, Hold)
 - ✅ Job Description creation with AI parsing (Gemini)
 - ✅ Resume upload and processing with file drag-drop
@@ -27,6 +28,13 @@ Build a Local Recruitment Automation Agent for IT recruiters that works offline 
 - ✅ Candidate management with manual field updates
 - ✅ Dark theme UI with JetBrains Mono font
 - ✅ Responsive design with mobile sidebar
+
+### Phase 2 - Enhancements (Jan 2026)
+- ✅ Duplicate candidate detection (email/phone matching across all jobs)
+- ✅ Compare candidates feature (side-by-side comparison with skill analysis)
+- ✅ Skill overlap analysis showing common and unique skills
+- ✅ Duplicate warnings in processing results
+- ✅ Visual duplicate indicators in candidates table
 
 ## Tech Stack
 - **Backend**: FastAPI, MongoDB, emergentintegrations (Gemini AI)
@@ -40,13 +48,12 @@ Build a Local Recruitment Automation Agent for IT recruiters that works offline 
 
 ### P1 - High Priority
 - Bulk resume download from category folders
-- Duplicate candidate detection
 - Interview scheduling integration
 
 ### P2 - Medium Priority
 - Resume templates matching
 - Skills gap analysis report
-- Candidate comparison view
+- Candidate comparison view ✅ (DONE)
 
 ### P3 - Low Priority
 - Dark/Light theme toggle
@@ -54,7 +61,6 @@ Build a Local Recruitment Automation Agent for IT recruiters that works offline 
 - Resume annotation features
 
 ## Next Tasks
-1. Add bulk export functionality for specific categories
-2. Implement duplicate candidate warning
-3. Add interview scheduling calendar
-4. Create skills gap analysis dashboard
+1. Add interview scheduling calendar
+2. Create skills gap analysis dashboard
+3. Add bulk export functionality for specific categories
