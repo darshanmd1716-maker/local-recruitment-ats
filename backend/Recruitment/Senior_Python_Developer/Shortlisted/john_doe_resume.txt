@@ -1,0 +1,17 @@
+
+        John Doe
+        Senior Software Engineer
+        
+        Email: john.doe@example.com
+        Phone: +1-555-0123
+        
+        Experience: 6 years
+        
+        Skills:
+        - Python, Django, Flask
+        - AWS, Docker
+        - PostgreSQL, Redis
+        - Git, Jenkins
+        
+        Current Role: Senior Python Developer at TechCorp
+        
