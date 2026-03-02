@@ -229,10 +229,11 @@ async def parse_resume_with_ai(file_path: str, file_content: bytes, filename: st
     "mobile": "Phone number",
     "email": "Email address",
     "skills": ["skill1", "skill2", ...],
-    "experience": "Total years of experience",
+    "experience": "Total years of experience as STRING (e.g., '5 years', '3+ years', '2-4 years')",
     "current_role": "Current or last job title"
 }
 
+IMPORTANT: The experience field MUST be a string, not a number. Use format like "5 years" not just 5.
 Return ONLY valid JSON, no other text. If information is not found, use null."""
 
         response = await chat.send_message(UserMessage(
@@ -243,7 +244,11 @@ Return ONLY valid JSON, no other text. If information is not found, use null."""
         # Extract JSON from response
         json_match = re.search(r'\{[\s\S]*\}', response)
         if json_match:
-            return json.loads(json_match.group())
+            parsed = json.loads(json_match.group())
+            # Ensure experience is always a string
+            if parsed.get('experience') is not None and not isinstance(parsed['experience'], str):
+                parsed['experience'] = f"{parsed['experience']} years"
+            return parsed
         return {"name": "Unknown", "mobile": None, "email": None, "skills": [], "experience": None, "current_role": None}
     except Exception as e:
         logger.error(f"Error parsing resume with AI: {e}")
