@@ -976,6 +976,10 @@ const CandidatesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [editCandidate, setEditCandidate] = useState(null);
+  const [selectedForCompare, setSelectedForCompare] = useState([]);
+  const [showCompareDialog, setShowCompareDialog] = useState(false);
+  const [compareResult, setCompareResult] = useState(null);
+  const [comparing, setComparing] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
