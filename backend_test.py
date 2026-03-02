@@ -266,6 +266,220 @@ class ATSAPITester:
             200
         )[0]
 
+    def test_check_duplicate(self):
+        """Test duplicate candidate detection"""
+        # Test with email and mobile
+        success1, response1 = self.run_test(
+            "Check Duplicate - Email", 
+            "GET", 
+            "check-duplicate?email=john.doe@example.com", 
+            200
+        )
+        
+        success2, response2 = self.run_test(
+            "Check Duplicate - Mobile", 
+            "GET", 
+            "check-duplicate?mobile=+1-555-0123", 
+            200
+        )
+        
+        # Test with non-existent contact
+        success3, response3 = self.run_test(
+            "Check Duplicate - Non-existent", 
+            "GET", 
+            "check-duplicate?email=nonexistent@example.com", 
+            200
+        )
+        
+        if success1 and success2 and success3:
+            # Check response structure
+            if 'is_duplicate' not in response1:
+                print("❌ Missing 'is_duplicate' field in response")
+                return False
+            print(f"   Email duplicate check: {response1.get('is_duplicate')}")
+            print(f"   Mobile duplicate check: {response2.get('is_duplicate')}")
+            print(f"   Non-existent duplicate check: {response3.get('is_duplicate')}")
+        
+        return success1 and success2 and success3
+
+    def test_get_duplicates_for_job(self):
+        """Test getting duplicates for a specific job"""
+        if not self.job_id:
+            print("❌ No job ID available for duplicates test")
+            return False
+        
+        success, response = self.run_test(
+            f"Get Duplicates for Job {self.job_id}", 
+            "GET", 
+            f"duplicates/{self.job_id}", 
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} duplicate candidates")
+        
+        return success
+
+    def test_compare_candidates(self):
+        """Test comparing candidates"""
+        if not self.job_id:
+            print("❌ No job ID available for comparison")
+            return False
+        
+        # First get candidates to compare
+        success, candidates = self.run_test("Get Candidates for Comparison", "GET", f"candidates/{self.job_id}", 200)
+        if not success or not candidates or len(candidates) == 0:
+            print("❌ No candidates available for comparison test")
+            return False
+        
+        # Create another dummy candidate if we only have one
+        if len(candidates) == 1:
+            dummy_resume_content2 = """
+            Jane Smith
+            Senior Full Stack Developer
+            
+            Email: jane.smith@example.com
+            Phone: +1-555-0124
+            
+            Experience: 8 years
+            
+            Skills:
+            - Python, React, Node.js
+            - AWS, Kubernetes
+            - MongoDB, PostgreSQL
+            - Git, Docker
+            
+            Current Role: Lead Developer at WebCorp
+            """
+            
+            files = {
+                'files': ('jane_smith_resume.txt', dummy_resume_content2.encode(), 'text/plain')
+            }
+            
+            success, _ = self.run_test(
+                "Add Second Candidate for Comparison", 
+                "POST", 
+                f"process-resumes/{self.job_id}", 
+                200, 
+                files=files
+            )
+            
+            if not success:
+                print("❌ Failed to add second candidate")
+                return False
+            
+            # Re-fetch candidates
+            success, candidates = self.run_test("Re-fetch Candidates", "GET", f"candidates/{self.job_id}", 200)
+            if not success or len(candidates) < 2:
+                print("❌ Still don't have enough candidates for comparison")
+                return False
+        
+        # Test comparison with 2 candidates
+        candidate_ids = [candidates[0]['id'], candidates[1]['id']]
+        comparison_data = {
+            "candidate_ids": candidate_ids
+        }
+        
+        success, response = self.run_test(
+            "Compare 2 Candidates", 
+            "POST", 
+            "compare-candidates", 
+            200, 
+            comparison_data
+        )
+        
+        if success and isinstance(response, dict):
+            required_fields = ['candidates', 'comparison_metrics']
+            for field in required_fields:
+                if field not in response:
+                    print(f"❌ Missing field in comparison result: {field}")
+                    return False
+            
+            print(f"   Compared {len(response['candidates'])} candidates")
+            metrics = response['comparison_metrics']
+            print(f"   Common skills: {metrics.get('common_skills_count', 0)}")
+            print(f"   Total unique skills: {metrics.get('total_unique_skills', 0)}")
+        
+        # Test error case - too few candidates
+        success_err1, _ = self.run_test(
+            "Compare - Too Few Candidates", 
+            "POST", 
+            "compare-candidates", 
+            400, 
+            {"candidate_ids": [candidate_ids[0]]}
+        )
+        
+        # Test error case - too many candidates (simulate with repeated IDs)
+        too_many_ids = candidate_ids * 3  # 6 candidates (over limit of 5)
+        success_err2, _ = self.run_test(
+            "Compare - Too Many Candidates", 
+            "POST", 
+            "compare-candidates", 
+            400, 
+            {"candidate_ids": too_many_ids}
+        )
+        
+        return success and success_err1 and success_err2
+
+    def test_process_resumes_with_duplicates(self):
+        """Test resume processing that includes duplicate detection"""
+        if not self.job_id:
+            print("❌ No job ID available for duplicate processing test")
+            return False
+
+        # Process the same resume again to trigger duplicate detection
+        duplicate_resume_content = """
+        John Doe
+        Senior Software Engineer
+        
+        Email: john.doe@example.com
+        Phone: +1-555-0123
+        
+        Experience: 6 years
+        
+        Skills:
+        - Python, Django, Flask
+        - AWS, Docker
+        - PostgreSQL, Redis
+        - Git, Jenkins
+        
+        Current Role: Senior Python Developer at TechCorp
+        """
+        
+        files = {
+            'files': ('john_doe_duplicate_resume.txt', duplicate_resume_content.encode(), 'text/plain')
+        }
+        
+        success, response = self.run_test(
+            "Process Duplicate Resume", 
+            "POST", 
+            f"process-resumes/{self.job_id}", 
+            200, 
+            files=files
+        )
+        
+        if success and isinstance(response, dict):
+            # Check if duplicates_found field exists and has data
+            if 'duplicates_found' not in response:
+                print("❌ Missing 'duplicates_found' field in processing result")
+                return False
+            
+            duplicates = response['duplicates_found']
+            print(f"   Found {len(duplicates)} duplicates in processing")
+            
+            if len(duplicates) > 0:
+                duplicate = duplicates[0]
+                required_dup_fields = ['new_name', 'existing_name', 'match_type', 'existing_job']
+                for field in required_dup_fields:
+                    if field not in duplicate:
+                        print(f"❌ Missing field in duplicate info: {field}")
+                        return False
+                        
+                print(f"   Duplicate match type: {duplicate.get('match_type')}")
+                print(f"   Existing candidate: {duplicate.get('existing_name')}")
+        
+        return success
+
     def test_delete_job(self):
         """Test deleting a job"""
         if not self.job_id:
