@@ -915,6 +915,45 @@ const ProcessPage = () => {
                   </Button>
                 </div>
 
+                {/* Duplicates Warning */}
+                {result.duplicates_found && result.duplicates_found.length > 0 && (
+                  <div className="p-4 bg-[#eab308]/10 border border-[#eab308]/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle className="w-5 h-5 text-[#eab308]" />
+                      <span className="font-medium text-[#eab308]">
+                        {result.duplicates_found.length} Duplicate{result.duplicates_found.length > 1 ? 's' : ''} Detected
+                      </span>
+                    </div>
+                    <ScrollArea className="max-h-40">
+                      {result.duplicates_found.map((dup, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-[#27272a]/50 rounded-lg mb-2 text-sm"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Copy className="w-4 h-4 text-[#eab308]" />
+                            <span className="font-medium">{dup.new_name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {dup.match_type} match
+                            </Badge>
+                          </div>
+                          <p className="text-[#a1a1aa] text-xs">
+                            Already exists as <span className="text-white">{dup.existing_name}</span> in{" "}
+                            <span className="text-[#3b82f6]">{dup.existing_job}</span>
+                            {" "}({dup.existing_category} - {dup.existing_match?.toFixed(0)}%)
+                          </p>
+                          <p className="text-[#a1a1aa] text-xs mt-1 font-mono">
+                            {dup.existing_email || dup.existing_mobile}
+                          </p>
+                        </div>
+                      ))}
+                    </ScrollArea>
+                    <p className="text-xs text-[#a1a1aa] mt-2">
+                      Candidates were still added but marked as duplicates. Review in Candidates page.
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 text-sm text-[#22c55e] bg-[#22c55e]/10 p-3 rounded-lg">
                   <FolderOpen className="w-4 h-4" />
                   <span>Folders created successfully in /Recruitment/{jobs.find(j => j.id === selectedJob)?.title || 'Job'}/</span>
