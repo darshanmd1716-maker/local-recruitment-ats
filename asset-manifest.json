@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/local-recruitment-ats/static/css/main.89f49c8f.css",
+    "main.js": "/local-recruitment-ats/static/js/main.2c572a96.js",
+    "index.html": "/local-recruitment-ats/index.html",
+    "main.89f49c8f.css.map": "/local-recruitment-ats/static/css/main.89f49c8f.css.map",
+    "main.2c572a96.js.map": "/local-recruitment-ats/static/js/main.2c572a96.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.89f49c8f.css",
+    "static/js/main.2c572a96.js"
+  ]
+}
