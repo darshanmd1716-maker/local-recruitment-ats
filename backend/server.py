@@ -98,6 +98,16 @@ class ProcessingResult(BaseModel):
     top_candidates: List[Dict[str, Any]]
     folder_created: bool
     excel_path: Optional[str] = None
+    duplicates_found: List[Dict[str, Any]] = []
+
+class DuplicateCandidate(BaseModel):
+    existing_candidate: Dict[str, Any]
+    new_candidate: Dict[str, Any]
+    match_type: str  # "email", "mobile", "both"
+    existing_job_title: Optional[str] = None
+
+class CompareRequest(BaseModel):
+    candidate_ids: List[str]
 
 # ============== Helper Functions ==============
 
