@@ -506,6 +506,12 @@ def main():
         ("Update Candidate", tester.test_update_candidate),
         ("Export Excel", tester.test_export_excel),
         ("Filter Candidates by Category", tester.test_filter_candidates_by_category),
+        # NEW FEATURE TESTS - Duplicate Detection & Compare
+        ("Check Duplicate Candidates", tester.test_check_duplicate),
+        ("Get Duplicates for Job", tester.test_get_duplicates_for_job),
+        ("Compare Candidates", tester.test_compare_candidates),
+        ("Process Resumes with Duplicate Detection", tester.test_process_resumes_with_duplicates),
+        # Clean up tests
         ("Delete Candidate", tester.test_delete_candidate),
         ("Delete Job", tester.test_delete_job),
         ("Get Final Stats", tester.test_get_stats),
