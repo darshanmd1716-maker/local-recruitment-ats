@@ -1,0 +1,169 @@
+{
+  "project_name": "Local Recruitment Automation Agent",
+  "design_philosophy": {
+    "identity": "The Performance Pro",
+    "core_principles": [
+      "Tactical Minimalism: Replace soft shadows with 1px solid strokes or 2px 'Inner Glow'.",
+      "High-Density Data: Use compact grids and tables for maximum information density.",
+      "Visual Hierarchy: Use color only for status (Match Score) and action (Primary Button). Everything else is monochrome.",
+      "Tech-First Aesthetic: Use monospace fonts for headers and data points to reflect the IT nature of the tool."
+    ],
+    "emotional_tone": "Professional, Efficient, Precise, Secure"
+  },
+  "typography": {
+    "font_family": {
+      "headings": "JetBrains Mono, monospace",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl font-bold tracking-tight",
+      "h2": "text-3xl font-semibold tracking-tight",
+      "h3": "text-2xl font-semibold tracking-tight",
+      "body": "text-base font-normal leading-relaxed",
+      "small": "text-sm font-medium text-muted-foreground",
+      "tiny": "text-xs font-medium uppercase tracking-wider"
+    }
+  },
+  "colors": {
+    "theme": "dark",
+    "palette": {
+      "background": "#09090b",
+      "foreground": "#fafafa",
+      "card": "#18181b",
+      "card_foreground": "#fafafa",
+      "popover": "#18181b",
+      "popover_foreground": "#fafafa",
+      "primary": "#fafafa",
+      "primary_foreground": "#18181b",
+      "secondary": "#27272a",
+      "secondary_foreground": "#fafafa",
+      "muted": "#27272a",
+      "muted_foreground": "#a1a1aa",
+      "accent": "#27272a",
+      "accent_foreground": "#fafafa",
+      "destructive": "#ef4444",
+      "destructive_foreground": "#fafafa",
+      "border": "#27272a",
+      "input": "#27272a",
+      "ring": "#d4d4d8",
+      "chart_1": "#22c55e",
+      "chart_2": "#3b82f6",
+      "chart_3": "#eab308",
+      "chart_4": "#ef4444",
+      "chart_5": "#8b5cf6"
+    },
+    "status_colors": {
+      "match_high": "#22c55e",
+      "match_medium": "#eab308",
+      "match_low": "#ef4444",
+      "shortlisted": "#22c55e",
+      "hold": "#eab308",
+      "rejected": "#ef4444"
+    }
+  },
+  "layout": {
+    "grid_system": "Bento Grid (Mode B: High Density)",
+    "container_padding": "p-6 md:p-8 lg:p-10",
+    "spacing_scale": "space-y-6",
+    "sidebar": {
+      "width": "w-64",
+      "collapsed_width": "w-16",
+      "bg": "bg-card border-r border-border"
+    },
+    "dashboard": {
+      "grid_cols": "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+      "gap": "gap-4"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 rounded-md font-medium transition-colors",
+      "outline": "border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 rounded-md font-medium transition-colors",
+      "ghost": "hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 rounded-md font-medium transition-colors"
+    },
+    "cards": {
+      "default": "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "hover_effect": "hover:border-primary/50 transition-colors duration-300",
+      "tracing_beam": "relative overflow-hidden border border-transparent bg-origin-border"
+    },
+    "inputs": {
+      "default": "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    },
+    "tables": {
+      "wrapper": "relative w-full overflow-auto rounded-md border",
+      "header": "bg-muted/50 font-medium text-muted-foreground [&_tr]:border-b",
+      "row": "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      "cell": "p-4 align-middle [&:has([role=checkbox])]:pr-0"
+    },
+    "badges": {
+      "default": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+      "outline": "text-foreground"
+    }
+  },
+  "motion": {
+    "library": "framer-motion",
+    "page_transition": {
+      "initial": { "opacity": 0, "y": 20 },
+      "animate": { "opacity": 1, "y": 0 },
+      "exit": { "opacity": 0, "y": -20 },
+      "transition": { "duration": 0.3, "ease": "easeInOut" }
+    },
+    "list_stagger": {
+      "container": {
+        "hidden": { "opacity": 0 },
+        "show": {
+          "opacity": 1,
+          "transition": {
+            "staggerChildren": 0.05
+          }
+        }
+      },
+      "item": {
+        "hidden": { "opacity": 0, "y": 10 },
+        "show": { "opacity": 1, "y": 0 }
+      }
+    }
+  },
+  "assets": {
+    "icons": {
+      "library": "lucide-react",
+      "style": "stroke-1.5"
+    },
+    "images": [
+      {
+        "category": "hero_background",
+        "url": "https://images.unsplash.com/photo-1771226281112-b7119ef4112e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzJ8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGRhcmslMjB0ZWNobm9sb2d5JTIwZGF0YSUyMGZsb3clMjBiYWNrZ3JvdW5kJTIwbWluaW1hbGlzdHxlbnwwfHx8fDE3NzI0NDgwMDB8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract dark wavy lines textured background for sidebar or welcome screen"
+      }
+    ]
+  },
+  "accessibility": {
+    "contrast_check": "Ensure text meets APCA standards against backgrounds.",
+    "focus_states": "Visible focus rings on all interactive elements.",
+    "aria_labels": "Required for all icon-only buttons."
+  },
+  "instructions_to_main_agent": [
+    "IMPERATIVE: Create a 'Recruitment/Jobs' folder structure in the backend if not exists.",
+    "IMPERATIVE: Use 'shadcn/ui' components for all interactive elements.",
+    "IMPERATIVE: Implement 'sonner' for toast notifications (e.g., 'Resumes parsed successfully').",
+    "IMPERATIVE: Use 'Recharts' for any data visualization (e.g., Skills Match Chart).",
+    "IMPERATIVE: The dashboard must be 'High Density'. Avoid excessive whitespace in data tables.",
+    "IMPERATIVE: Use 'JetBrains Mono' for all numeric data (Match Scores, Phone Numbers) and headings.",
+    "IMPERATIVE: Implement a 'Dark Mode' toggle, but default to Dark Mode.",
+    "IMPERATIVE: Ensure Excel export is a prominent primary action.",
+    "IMPERATIVE: Do not use gradient backgrounds for the main content area. Solid dark colors only.",
+    "IMPERATIVE: All buttons must have a 'data-testid' attribute.",
+    "IMPERATIVE: Use 'lucide-react' for icons."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Don't make generic centered layouts.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) for sticky headers only.",
+    "You MUST NOT apply universal transition (transition: all).",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Subtle grain textures or noise overlays can be used on the sidebar background.",
+    "Main agent relies on these image URLs. Missing categories = main agent will use placeholder text which is FORBIDDEN."
+  ]
+}
