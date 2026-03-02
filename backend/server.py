@@ -494,6 +494,7 @@ async def process_resumes(job_id: str, files: List[UploadFile] = File(...)):
     shortlisted_count = 0
     hold_count = 0
     rejected_count = 0
+    duplicates_found = []
     
     for file in files:
         # Skip non-resume files
@@ -512,6 +513,29 @@ async def process_resumes(job_id: str, files: List[UploadFile] = File(...)):
             # Parse resume with AI
             parsed_data = await parse_resume_with_ai(str(temp_path), content, file.filename)
             
+            # Check for duplicates across ALL jobs
+            duplicate = await check_duplicate_candidate(
+                parsed_data.get('email'),
+                parsed_data.get('mobile')
+            )
+            
+            if duplicate:
+                # Get the job title for the existing candidate
+                existing_job = await db.jobs.find_one({"id": duplicate.get('job_id')}, {"_id": 0})
+                duplicates_found.append({
+                    "new_name": parsed_data.get('name', 'Unknown'),
+                    "new_email": parsed_data.get('email'),
+                    "new_mobile": parsed_data.get('mobile'),
+                    "existing_name": duplicate.get('name'),
+                    "existing_email": duplicate.get('email'),
+                    "existing_mobile": duplicate.get('mobile'),
+                    "existing_job": existing_job.get('title') if existing_job else 'Unknown',
+                    "existing_category": duplicate.get('category'),
+                    "existing_match": duplicate.get('match_percentage'),
+                    "match_type": duplicate.get('match_type', 'unknown'),
+                    "filename": file.filename
+                })
+            
             # Calculate match score
             match_score = await calculate_match_score(
                 job.get('required_skills', []),
@@ -522,7 +546,7 @@ async def process_resumes(job_id: str, files: List[UploadFile] = File(...)):
             # Categorize
             category = categorize_candidate(match_score)
             
-            # Create candidate record
+            # Create candidate record (still save even if duplicate - let recruiter decide)
             candidate = Candidate(
                 job_id=job_id,
                 name=parsed_data.get('name', 'Unknown'),
@@ -533,12 +557,14 @@ async def process_resumes(job_id: str, files: List[UploadFile] = File(...)):
                 current_role=parsed_data.get('current_role'),
                 match_percentage=match_score,
                 category=category,
-                original_filename=file.filename
+                original_filename=file.filename,
+                remarks=f"DUPLICATE: Found in {duplicate.get('match_type')} match with existing candidate" if duplicate else None
             )
             
             # Save to database
             doc = candidate.model_dump()
             doc['created_at'] = doc['created_at'].isoformat()
+            doc['is_duplicate'] = True if duplicate else False
             await db.candidates.insert_one(doc)
             
             # Copy to appropriate folder
@@ -578,7 +604,8 @@ async def process_resumes(job_id: str, files: List[UploadFile] = File(...)):
         rejected_future=rejected_count,
         top_candidates=top_candidates,
         folder_created=True,
-        excel_path=excel_path.split('/')[-1] if excel_path else None
+        excel_path=excel_path.split('/')[-1] if excel_path else None,
+        duplicates_found=duplicates_found
     )
 
 # Candidate Routes
