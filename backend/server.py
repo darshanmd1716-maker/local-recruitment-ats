@@ -111,6 +111,61 @@ class CompareRequest(BaseModel):
 
 # ============== Helper Functions ==============
 
+def normalize_phone(phone: Optional[str]) -> Optional[str]:
+    """Normalize phone number for comparison"""
+    if not phone:
+        return None
+    # Remove all non-digit characters
+    digits = re.sub(r'\D', '', phone)
+    # Return last 10 digits (standard mobile number)
+    return digits[-10:] if len(digits) >= 10 else digits if digits else None
+
+def normalize_email(email: Optional[str]) -> Optional[str]:
+    """Normalize email for comparison"""
+    if not email:
+        return None
+    return email.lower().strip()
+
+async def check_duplicate_candidate(email: Optional[str], mobile: Optional[str], exclude_job_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Check if a candidate with same email or mobile exists"""
+    normalized_email = normalize_email(email)
+    normalized_mobile = normalize_phone(mobile)
+    
+    if not normalized_email and not normalized_mobile:
+        return None
+    
+    # Build query for duplicates
+    or_conditions = []
+    if normalized_email:
+        or_conditions.append({"email": {"$regex": f"^{re.escape(normalized_email)}$", "$options": "i"}})
+    if normalized_mobile:
+        # Match last 10 digits of phone
+        or_conditions.append({"mobile": {"$regex": f"{normalized_mobile}$"}})
+    
+    if not or_conditions:
+        return None
+    
+    query = {"$or": or_conditions}
+    if exclude_job_id:
+        query["job_id"] = {"$ne": exclude_job_id}
+    
+    existing = await db.candidates.find_one(query, {"_id": 0})
+    if existing:
+        # Determine match type
+        existing_email = normalize_email(existing.get('email'))
+        existing_mobile = normalize_phone(existing.get('mobile'))
+        
+        match_type = []
+        if normalized_email and existing_email and normalized_email == existing_email:
+            match_type.append("email")
+        if normalized_mobile and existing_mobile and normalized_mobile == existing_mobile:
+            match_type.append("mobile")
+        
+        existing['match_type'] = " & ".join(match_type) if match_type else "unknown"
+        return existing
+    
+    return None
+
 async def parse_jd_with_ai(jd_text: str) -> Dict[str, Any]:
     """Use AI to extract structured data from JD"""
     try:
