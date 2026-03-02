@@ -682,6 +682,88 @@ async def get_stats():
         "rejected_future": rejected
     }
 
+# Compare Candidates Route
+@api_router.post("/compare-candidates")
+async def compare_candidates(request: CompareRequest):
+    """Compare multiple candidates side by side"""
+    if len(request.candidate_ids) < 2:
+        raise HTTPException(status_code=400, detail="At least 2 candidates required for comparison")
+    if len(request.candidate_ids) > 5:
+        raise HTTPException(status_code=400, detail="Maximum 5 candidates can be compared at once")
+    
+    candidates = []
+    for cid in request.candidate_ids:
+        candidate = await db.candidates.find_one({"id": cid}, {"_id": 0})
+        if candidate:
+            if isinstance(candidate.get('created_at'), str):
+                candidate['created_at'] = datetime.fromisoformat(candidate['created_at'])
+            # Get job title for this candidate
+            job = await db.jobs.find_one({"id": candidate.get('job_id')}, {"_id": 0})
+            candidate['job_title'] = job.get('title') if job else 'Unknown'
+            candidates.append(candidate)
+    
+    if len(candidates) < 2:
+        raise HTTPException(status_code=404, detail="Not enough valid candidates found")
+    
+    # Analyze skills overlap
+    all_skills = set()
+    for c in candidates:
+        all_skills.update(s.lower() for s in c.get('skills', []))
+    
+    # Calculate skill coverage for each candidate
+    for c in candidates:
+        candidate_skills = set(s.lower() for s in c.get('skills', []))
+        c['skill_coverage'] = round((len(candidate_skills) / len(all_skills)) * 100, 1) if all_skills else 0
+        c['unique_skills'] = list(candidate_skills - set().union(*[set(s.lower() for s in other.get('skills', [])) for other in candidates if other['id'] != c['id']]))
+    
+    # Find common skills
+    if candidates:
+        common_skills = set(s.lower() for s in candidates[0].get('skills', []))
+        for c in candidates[1:]:
+            common_skills &= set(s.lower() for s in c.get('skills', []))
+    else:
+        common_skills = set()
+    
+    return {
+        "candidates": candidates,
+        "comparison_metrics": {
+            "total_unique_skills": len(all_skills),
+            "common_skills": list(common_skills),
+            "common_skills_count": len(common_skills)
+        }
+    }
+
+# Check duplicates endpoint
+@api_router.get("/check-duplicate")
+async def check_duplicate(email: Optional[str] = None, mobile: Optional[str] = None):
+    """Check if a candidate with given email or mobile exists"""
+    if not email and not mobile:
+        raise HTTPException(status_code=400, detail="Email or mobile required")
+    
+    duplicate = await check_duplicate_candidate(email, mobile)
+    if duplicate:
+        # Get job info
+        job = await db.jobs.find_one({"id": duplicate.get('job_id')}, {"_id": 0})
+        duplicate['job_title'] = job.get('title') if job else 'Unknown'
+        return {"is_duplicate": True, "existing_candidate": duplicate}
+    
+    return {"is_duplicate": False, "existing_candidate": None}
+
+# Get duplicates for a job
+@api_router.get("/duplicates/{job_id}")
+async def get_duplicates(job_id: str):
+    """Get all duplicate candidates for a job"""
+    candidates = await db.candidates.find(
+        {"job_id": job_id, "is_duplicate": True}, 
+        {"_id": 0}
+    ).to_list(100)
+    
+    for candidate in candidates:
+        if isinstance(candidate.get('created_at'), str):
+            candidate['created_at'] = datetime.fromisoformat(candidate['created_at'])
+    
+    return candidates
+
 # Include the router in the main app
 app.include_router(api_router)
 
