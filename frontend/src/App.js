@@ -1366,6 +1366,11 @@ const CandidatesPage = () => {
               <Table className="data-table">
                 <TableHeader>
                   <TableRow className="border-[#27272a] hover:bg-transparent">
+                    <TableHead className="text-[#a1a1aa] w-12">
+                      <div className="flex items-center gap-1">
+                        <GitCompare className="w-4 h-4" />
+                      </div>
+                    </TableHead>
                     <TableHead className="text-[#a1a1aa]">Candidate</TableHead>
                     <TableHead className="text-[#a1a1aa]">Contact</TableHead>
                     <TableHead className="text-[#a1a1aa]">Skills</TableHead>
@@ -1378,11 +1383,24 @@ const CandidatesPage = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredCandidates.map((candidate) => (
-                    <TableRow key={candidate.id} className="border-[#27272a]">
+                    <TableRow key={candidate.id} className={`border-[#27272a] ${candidate.is_duplicate ? 'bg-[#eab308]/5' : ''}`}>
                       <TableCell>
-                        <div>
-                          <p className="font-medium">{candidate.name}</p>
-                          <p className="text-xs text-[#a1a1aa]">{candidate.current_role || "N/A"}</p>
+                        <Checkbox
+                          checked={selectedForCompare.includes(candidate.id)}
+                          onCheckedChange={() => toggleCompareSelection(candidate.id)}
+                          className="border-[#3f3f46] data-[state=checked]:bg-[#3b82f6] data-[state=checked]:border-[#3b82f6]"
+                          data-testid={`compare-checkbox-${candidate.id}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {candidate.is_duplicate && (
+                            <AlertTriangle className="w-4 h-4 text-[#eab308]" title="Duplicate candidate" />
+                          )}
+                          <div>
+                            <p className="font-medium">{candidate.name}</p>
+                            <p className="text-xs text-[#a1a1aa]">{candidate.current_role || "N/A"}</p>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
