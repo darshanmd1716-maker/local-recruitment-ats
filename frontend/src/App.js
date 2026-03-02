@@ -1137,16 +1137,169 @@ const CandidatesPage = () => {
           <h1 className="text-3xl font-mono font-bold tracking-tight">Candidates</h1>
           <p className="text-[#a1a1aa] mt-1">View and manage all candidates</p>
         </div>
-        <Button
-          onClick={handleExportExcel}
-          disabled={!selectedJob}
-          className="gap-2"
-          data-testid="export-all-excel-btn"
-        >
-          <Download className="w-4 h-4" />
-          Export Excel
-        </Button>
+        <div className="flex gap-2">
+          {selectedForCompare.length > 0 && (
+            <>
+              <Button
+                variant="outline"
+                onClick={clearCompareSelection}
+                className="gap-2"
+                data-testid="clear-compare-btn"
+              >
+                <X className="w-4 h-4" />
+                Clear ({selectedForCompare.length})
+              </Button>
+              <Button
+                onClick={handleCompare}
+                disabled={selectedForCompare.length < 2 || comparing}
+                className="gap-2 bg-[#3b82f6] hover:bg-[#2563eb]"
+                data-testid="compare-btn"
+              >
+                {comparing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <GitCompare className="w-4 h-4" />
+                )}
+                Compare {selectedForCompare.length} Candidates
+              </Button>
+            </>
+          )}
+          <Button
+            onClick={handleExportExcel}
+            disabled={!selectedJob}
+            className="gap-2"
+            data-testid="export-all-excel-btn"
+          >
+            <Download className="w-4 h-4" />
+            Export Excel
+          </Button>
+        </div>
       </div>
+
+      {/* Compare Dialog */}
+      <Dialog open={showCompareDialog} onOpenChange={setShowCompareDialog}>
+        <DialogContent className="bg-[#18181b] border-[#27272a] max-w-5xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="font-mono flex items-center gap-2">
+              <ArrowLeftRight className="w-5 h-5 text-[#3b82f6]" />
+              Compare Candidates
+            </DialogTitle>
+            <DialogDescription>
+              Side-by-side comparison of selected candidates
+            </DialogDescription>
+          </DialogHeader>
+          {compareResult && (
+            <ScrollArea className="max-h-[60vh]">
+              <div className="space-y-6">
+                {/* Common Skills */}
+                <div className="p-4 bg-[#27272a]/50 rounded-lg">
+                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-[#22c55e]" />
+                    Common Skills ({compareResult.comparison_metrics.common_skills_count})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {compareResult.comparison_metrics.common_skills.map((skill, i) => (
+                      <span key={i} className="skill-tag bg-[#22c55e]/20 text-[#22c55e]">
+                        {skill}
+                      </span>
+                    ))}
+                    {compareResult.comparison_metrics.common_skills.length === 0 && (
+                      <span className="text-[#a1a1aa] text-sm">No common skills found</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Comparison Grid */}
+                <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${compareResult.candidates.length}, minmax(200px, 1fr))` }}>
+                  {compareResult.candidates.map((candidate, index) => (
+                    <Card key={candidate.id} className="bg-[#27272a] border-[#3f3f46]">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <Badge className={`${candidate.category === 'Shortlisted' ? 'bg-[#22c55e]' : candidate.category === 'Hold' ? 'bg-[#eab308]' : 'bg-[#ef4444]'} text-black font-mono`}>
+                            {candidate.match_percentage?.toFixed(0)}%
+                          </Badge>
+                          <span className="text-xs text-[#a1a1aa]">#{index + 1}</span>
+                        </div>
+                        <CardTitle className="text-lg mt-2">{candidate.name}</CardTitle>
+                        <CardDescription className="font-mono text-xs">
+                          {candidate.current_role || "Role N/A"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3 text-sm">
+                        <div>
+                          <p className="text-[#a1a1aa] text-xs mb-1">Experience</p>
+                          <p className="font-mono">{candidate.experience || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[#a1a1aa] text-xs mb-1">Contact</p>
+                          <p className="font-mono text-xs">{candidate.email || "N/A"}</p>
+                          <p className="font-mono text-xs">{candidate.mobile || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[#a1a1aa] text-xs mb-1">Skill Coverage</p>
+                          <Progress value={candidate.skill_coverage} className="h-2" />
+                          <p className="text-xs mt-1 font-mono">{candidate.skill_coverage}%</p>
+                        </div>
+                        <div>
+                          <p className="text-[#a1a1aa] text-xs mb-1">Skills ({candidate.skills?.length || 0})</p>
+                          <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                            {candidate.skills?.slice(0, 8).map((skill, i) => (
+                              <span key={i} className="skill-tag text-xs">
+                                {skill}
+                              </span>
+                            ))}
+                            {candidate.skills?.length > 8 && (
+                              <span className="skill-tag text-xs text-[#a1a1aa]">
+                                +{candidate.skills.length - 8}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {candidate.unique_skills?.length > 0 && (
+                          <div>
+                            <p className="text-[#a1a1aa] text-xs mb-1">Unique Skills</p>
+                            <div className="flex flex-wrap gap-1">
+                              {candidate.unique_skills.slice(0, 5).map((skill, i) => (
+                                <span key={i} className="skill-tag text-xs bg-[#3b82f6]/20 text-[#3b82f6]">
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <Separator className="bg-[#3f3f46]" />
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <p className="text-[#a1a1aa]">CTC</p>
+                            <p className="font-mono">{candidate.current_ctc || "-"}</p>
+                          </div>
+                          <div>
+                            <p className="text-[#a1a1aa]">Expected</p>
+                            <p className="font-mono">{candidate.expected_ctc || "-"}</p>
+                          </div>
+                          <div>
+                            <p className="text-[#a1a1aa]">Notice</p>
+                            <p className="font-mono">{candidate.notice_period || "-"}</p>
+                          </div>
+                          <div>
+                            <p className="text-[#a1a1aa]">Response</p>
+                            <p className="font-mono">{candidate.candidate_response || "Pending"}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCompareDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Filters */}
       <Card className="bg-[#18181b] border-[#27272a]">
