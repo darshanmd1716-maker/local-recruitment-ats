@@ -23,7 +23,7 @@ import aiofiles
 from pypdf import PdfReader
 from docx import Document
 
-import google.generativeai as genai
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 
 ROOT_DIR = Path(__file__).parent
@@ -45,6 +45,9 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 RECRUITMENT_DIR.mkdir(exist_ok=True)
 EXPORT_DIR.mkdir(exist_ok=True)
 
+# LLM API Key
+EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -53,24 +56,22 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# ===================== GEMINI =====================
+# ===================== LLM HELPER =====================
 
-def configure_gemini():
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY missing")
-    genai.configure(api_key=api_key)
-
-
-async def gemini_text(prompt: str, model: str = "gemini-1.5-flash") -> str:
-    configure_gemini()
-
-    def run():
-        m = genai.GenerativeModel(model)
-        resp = m.generate_content(prompt)
-        return (resp.text or "").strip()
-
-    return await asyncio.to_thread(run)
+async def llm_text(prompt: str, system_message: str = "You are a helpful assistant.") -> str:
+    """Call LLM using emergent integrations"""
+    try:
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"ats-{uuid.uuid4()}",
+            system_message=system_message
+        ).with_model("gemini", "gemini-2.5-flash")
+        
+        response = await chat.send_message(UserMessage(text=prompt))
+        return response.strip() if response else ""
+    except Exception as e:
+        logger.error(f"LLM error: {e}")
+        return ""
 
 
 def safe_json_from_text(text):
@@ -244,7 +245,7 @@ Job Description:
 
 Return ONLY valid JSON, no other text."""
 
-    response = await gemini_text(prompt)
+    response = await llm_text(prompt, "You are an expert IT recruiter. Extract structured information from job descriptions.")
     data = safe_json_from_text(response)
     if not data:
         return {
@@ -283,7 +284,7 @@ Resume:
 
 Return ONLY valid JSON, no other text. If information is not found, use null."""
 
-    response = await gemini_text(prompt)
+    response = await llm_text(prompt, "You are an expert IT recruiter. Extract candidate information from resumes accurately.")
     data = safe_json_from_text(response)
     if not data:
         return {
@@ -323,7 +324,7 @@ Consider:
 Return only the number, nothing else."""
 
     try:
-        response = await gemini_text(prompt)
+        response = await llm_text(prompt, "You are an expert IT recruiter. Evaluate candidate-job fit accurately.")
         numbers = re.findall(r'\d+(?:\.\d+)?', response)
         if numbers:
             score = float(numbers[0])
